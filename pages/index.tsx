@@ -5,10 +5,10 @@ const IndexPage: NextPage = () => {
   const { data: session } = useSession();
   if (session) {
     return (
-      <>
+      <div className="text-3xl">
         Signed in as {session.user.email} <br />
         <button onClick={() => signOut()}>Sign out</button>
-      </>
+      </div>
     );
   }
 
