@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import connectDb from '../../utils/database';
-import { ObjectId } from 'mongodb';
+import { ObjectId, WithId } from 'mongodb';
 
 interface ErrorResponseType {
   message: string;
@@ -12,11 +12,17 @@ interface SucessResponseType {
   email: string;
   cellphone: string;
   teacher: boolean;
+  coins: number;
+  courses: string[];
+  availableHours: object;
+  availableLocations: string[];
+  reviews: object[];
+  appointments: object[];
 }
 
 export default async (
   req: NextApiRequest,
-  res: NextApiResponse<ErrorResponseType | SucessResponseType>
+  res: NextApiResponse<ErrorResponseType | SucessResponseType | object[]>
 ): Promise<void> => {
   if (req.method === 'POST') {
     const {
@@ -83,7 +89,8 @@ export default async (
 
     const response = await db
       .collection('users')
-      .findOne({ _id: new ObjectId(id) });
+      .find({ _id: new ObjectId(id) })
+      .toArray();
 
     if (!response) {
       res.status(400).json({ message: 'User not found, put a valid id!' });
@@ -91,7 +98,6 @@ export default async (
       return;
     }
 
-    // Different type but working
     res.status(200).json(response);
   } else {
     res.status(400).json({ message: 'Wrong request method' });
