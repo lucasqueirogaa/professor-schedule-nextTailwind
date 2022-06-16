@@ -7,17 +7,19 @@ interface ErrorResponseType {
 }
 
 interface SucessResponseType {
-  _id: string;
   name: string;
   email: string;
   cellphone: string;
   teacher: boolean;
   coins: number;
   courses: string[];
-  availableHours: object;
+  availableHours: Record<string, number[]>;
   availableLocations: string[];
-  reviews: object[];
-  appointments: object[];
+  reviews: Record<string, unknown[]>;
+  appointments: {
+    date: string;
+  }[];
+  _id: string;
 }
 
 export default async (

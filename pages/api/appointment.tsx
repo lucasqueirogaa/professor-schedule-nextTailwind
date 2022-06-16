@@ -3,6 +3,22 @@ import { getSession } from 'next-auth/react';
 import { NextApiRequest, NextApiResponse } from 'next';
 import connectDb from '../../utils/database';
 
+interface User {
+  name: string;
+  email: string;
+  cellphone: string;
+  teacher: boolean;
+  coins: number;
+  courses: string[];
+  availableHours: Record<string, number[]>;
+  availableLocations: string[];
+  reviews: Record<string, unknown[]>;
+  appointments: {
+    date: string;
+  }[];
+  _id: string;
+}
+
 interface ErrorResponseType {
   message: string;
 }
@@ -40,6 +56,15 @@ export default async (
       course,
       location,
       appointmentLink,
+    }: {
+      date: string;
+      teacherName: string;
+      teacher_id: string;
+      studentName: string;
+      student_id: string;
+      course: string;
+      location: string;
+      appointmentLink: string;
     } = req.body;
 
     if (
@@ -52,6 +77,31 @@ export default async (
       !location
     ) {
       res.status(400).json({ message: 'Missing parameter on request body' });
+
+      return;
+    }
+
+    const parseDate = new Date(date);
+    const now = new Date();
+    const today = {
+      day: now.getDate(),
+      month: now.getMonth(),
+      year: now.getFullYear(),
+    };
+    const fullDate = {
+      day: parseDate.getDate(),
+      month: parseDate.getMonth(),
+      year: parseDate.getFullYear(),
+    };
+
+    if (
+      fullDate.year < today.year ||
+      fullDate.month < today.month ||
+      fullDate.day < today.day
+    ) {
+      res.status(400).json({
+        message: 'Put a valid date, on the future.',
+      });
 
       return;
     }
@@ -82,6 +132,46 @@ export default async (
       return;
     }
 
+    if (studentCheck.coins === 0) {
+      res.status(400).json({
+        message: `Studen ${studentName} have 0 coins, you need 1 coin.`,
+      });
+
+      return;
+    }
+
+    const weekdays = [
+      'sunday',
+      'monday',
+      'tuesday',
+      'wednesday',
+      'thursday',
+      'friday',
+      'saturday',
+    ];
+
+    const requestDay = weekdays[parseDate.getDay()];
+    const requestedHour = parseDate.getUTCHours() - 3;
+    if (!teacherCheck.availableHours[requestDay]?.includes(requestedHour)) {
+      res.status(400).json({
+        message: `Teacher ${teacherName} is not available at ${requestDay} in ${requestedHour}`,
+      });
+      return;
+    }
+
+    teacherCheck.appointments.forEach((appointment) => {
+      const appointmentDate = new Date(appointment.date);
+
+      if (appointmentDate.getTime() === parseDate.getTime()) {
+        res.status(400).json({
+          message: `Teacher ${teacherName} has an appointment at ${appointmentDate.getDay()}/${appointmentDate.getMonth()}/${
+            appointmentDate.getFullYear
+          } - ${appointmentDate.getUTCHours() - 3}:00`,
+        });
+        return;
+      }
+    });
+
     const appointment = {
       date,
       teacherName,
@@ -97,14 +187,14 @@ export default async (
       .collection('users')
       .updateOne(
         { _id: new ObjectId(teacher_id) },
-        { $push: { appointments: appointment } }
+        { $push: { appointments: appointment }, $inc: { coins: 1 } }
       );
 
     await db
       .collection('users')
       .updateOne(
         { _id: new ObjectId(student_id) },
-        { $push: { appointments: appointment } }
+        { $push: { appointments: appointment }, $inc: { coins: -1 } }
       );
 
     res.status(200).json(appointment);
