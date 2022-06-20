@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import connectDb from '../../utils/database';
-import { ObjectId, WithId } from 'mongodb';
+import { ObjectId } from 'mongodb';
 
 interface ErrorResponseType {
   message: string;
@@ -78,29 +78,6 @@ export default async (
     });
 
     res.status(200).json({ message: 'Sucess to insert in DB' });
-  } else if (req.method === 'GET') {
-    const { id } = req.body;
-
-    if (!id) {
-      res.status(400).json({ message: 'We need a id for find the user' });
-
-      return;
-    }
-
-    const { db } = await connectDb();
-
-    const response = await db
-      .collection('users')
-      .find({ _id: new ObjectId(id) })
-      .toArray();
-
-    if (!response) {
-      res.status(400).json({ message: 'User not found, put a valid id!' });
-
-      return;
-    }
-
-    res.status(200).json(response);
   } else {
     res.status(400).json({ message: 'Wrong request method' });
   }
