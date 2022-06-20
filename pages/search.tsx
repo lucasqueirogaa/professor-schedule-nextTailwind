@@ -2,13 +2,13 @@ import { NextPage } from 'next';
 import { useSession, signIn, signOut } from 'next-auth/react';
 import Nav from '../components/nav';
 
-const IndexPage: NextPage = () => {
+const SearchPage: NextPage = () => {
   const { data: session } = useSession();
 
   return (
     <>
       <Nav />
-      <h1 className="pb-5">Bem vindo a página home</h1>
+      <h1 className="pb-5">Bem vindo a página search</h1>
       {!session && (
         <div className="text-3xl">
           Not signed in <br />
@@ -25,4 +25,4 @@ const IndexPage: NextPage = () => {
   );
 };
 
-export default IndexPage;
+export default SearchPage;
