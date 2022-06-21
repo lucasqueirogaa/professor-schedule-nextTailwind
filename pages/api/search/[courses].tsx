@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import connectDb from '../../utils/database';
+import connectDb from '../../../utils/database';
 
 interface ErrorResponseType {
   message: string;
@@ -10,7 +10,7 @@ export default async (
   res: NextApiResponse<ErrorResponseType | object[]>
 ): Promise<void> => {
   if (req.method === 'GET') {
-    const { courses } = req.body;
+    const courses = req.query.courses as Array<any>;
 
     if (!courses) {
       res.status(400).json({ message: 'We need a course to search' });

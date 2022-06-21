@@ -7,7 +7,7 @@ import Nav from '../components/nav';
 
 const ProfilePage: NextPage = () => {
   const { data: session } = useSession();
-  const { data, error } = useSWR(`api/user/62b06467d493fa4a242e42e9`, api);
+  const { data, error } = useSWR(`api/user/${session.user.email}`, api);
 
   if (error) {
     console.log(error);
